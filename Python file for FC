@@ -2,15 +2,14 @@ import os
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
-from transformers import pipeline
+from diffusers import StableDiffusionPipeline
+import torch
 
-generator = pipeline("text-generation", model = "gpt2", framework = "pt", truncation = True, repetition_penalty = 1.5)
+pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5", torch_dtype = torch.float32)
 
-user_input = input("Enter a prompt for text generation:\n")
+pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
 
-max_len = int(input("Enter the maximum length of generated text:\n"))
+prompt = "A futuristis city floating in the sky during sunset"
 
-result = generator(user_input, max_length = max_len, num_return_sequences = 1)
-
-print("Generated text is:\n")
-print(result[0]["generated_text"])
+image = pipe(prompt, num_inference_steps = 20).images[0]
+image.show()
